@@ -121,7 +121,12 @@ class GameState:
         self.food = (x,y)
 
     def collision_check(self):
-        pass
+        head = self.playersnake.body.popleft()
+        if head in self.wall:
+            exit(1)
+        if head in self.playersnake.body:
+            exit(1)
+        self.playersnake.body.appendleft(head)
 
     def update_world(self, steps):
         #move snakes <steps> times
@@ -129,7 +134,7 @@ class GameState:
             self.playersnake.move()
             # for snake in self.AIsnakes: 
             #   snake.move()
-            #collision check
+            self.collision_check()
             
             if self.food in self.playersnake.body:
                 self.playersnake.eat()
