@@ -115,8 +115,8 @@ class GameState:
         x = random.randint(1, self.mapwidth)
         y = random.randint(1, self.mapheight)
         while occupied(x,y):
-            x = random.randint(1, self.mapwidth)
-            y = random.randint(1, self.mapheight)
+            x = random.randint(1, self.mapwidth -1)
+            y = random.randint(1, self.mapheight -1)
 
         self.food = (x,y)
 
