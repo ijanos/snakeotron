@@ -43,12 +43,12 @@ class Direction:
 class Snake:
     """
     A Snake in the game
-    
+
     Stores the color, length and current place the of snake,
     also responsible for moving itself one step at a time
 
     The snake is represented with a deque, a list-like datastructure
-    that allows efficient pop/push on both ends of the list. 
+    that allows efficient pop/push on both ends of the list.
     """
 
     def __init__(self, start_pos = (1,1), color = (0,0,200)):
@@ -75,6 +75,70 @@ class Snake:
         if len(self.body) > self.length:
             self.body.pop()
 
+class AISnake(Snake):
+
+    def __init__(self, start_pos, color, gamestate):
+        Snake.__init__(self, start_pos, color)
+        self.gamestate = gamestate
+
+    def occupied(self, x, y):
+        if (x,y) in self.gamestate.wall:
+            return True
+        if (x,y) in self.body:
+            return True
+        if (x,y) in self.gamestate.playersnake.body:
+            return True
+        return False
+        #while D.opposite(newdir) == self.direction:
+        #    newdir = random.choice([D.UP, D.DOWN, D.LEFT, D.RIGHT])
+
+    def preferred_directions(self):
+        preferred = []
+        foodx, foody = self.gamestate.food
+        headx, heady = self.body[0]
+        if headx > foodx:
+            preferred.append(Direction.LEFT)
+        if headx < foodx:
+            preferred.append(Direction.RIGHT)
+        if heady > foody:
+            preferred.append(Direction.UP)
+        if heady < foody:
+            preferred.append(Direction.DOWN)
+        return preferred
+
+
+    def will_not_die(self):
+        D = Direction
+        legal_moves = [D.UP, D.DOWN, D.LEFT, D.RIGHT]
+        (headx, heady) = self.body[0]
+        if self.occupied(headx + 1, heady):
+            legal_moves.remove(D.RIGHT)
+        if self.occupied(headx - 1, heady):
+            legal_moves.remove(D.LEFT)
+        if self.occupied(headx, heady + 1):
+            legal_moves.remove(D.DOWN)
+        if self.occupied(headx, heady - 1):
+            legal_moves.remove(D.UP)
+        return legal_moves
+
+    def decide_new_direction(self):
+        # get legal moves
+        legal_moves = self.will_not_die()
+
+        if not legal_moves:
+            print "shit happaned"
+            exit(55)
+
+        # get preferred moves
+        pref_moves = self.preferred_directions()
+
+        optimal_moves = list(set(legal_moves).intersection(pref_moves))
+        if optimal_moves:
+            self.direction = random.choice(optimal_moves)
+        else:
+            self.direction = random.choice(legal_moves)
+
+
 class GameState:
     def __init__(self):
 
@@ -83,12 +147,16 @@ class GameState:
     def reset(self):
         """ Set the game's state to default values """
 
-        self.TICKLENGTH = 0.2 # length of one step in second
+        self.TICKLENGTH = 0.4 # length of one step in second
         self.BLOCKSIZE = 8 # size of one block on the map in pixels
 
-        self.playersnake = Snake(start_pos = (10, 10),
-                                 color = (0, 0, 200))
-        self.AIsnakes = []
+        self.playersnake = Snake(start_pos = (10, 10)
+                                ,color = (0, 0, 200)
+                                )
+        self.ai_snake = AISnake(start_pos = (15, 10)
+                               ,color = (255, 169, 43)
+                               ,gamestate = self
+                               )
         self.food = None
 
         # Nokia C5 display size: 240x320
@@ -102,7 +170,7 @@ class GameState:
     def set_wall(self, width, height):
         self.wall = []
 
-        mapwidth = width // self.BLOCKSIZE 
+        mapwidth = width // self.BLOCKSIZE
         mapheight = height // self.BLOCKSIZE
         for x in range(0, mapwidth):
             self.wall.append((x, 0))
@@ -121,10 +189,12 @@ class GameState:
 
     def place_new_food(self):
         def occupied(x,y):
-            if (x,y) in self.playersnake.body:
+            if (x, y) in self.playersnake.body:
                 return True
-            # for snake in aisnakes
+            if (x, y) in self.ai_snake.body:
+                return True
             return False
+
         x = random.randint(1, self.mapwidth - 1)
         y = random.randint(1, self.mapheight -1)
         while occupied(x,y):
@@ -139,18 +209,23 @@ class GameState:
             exit(1)
         if head in self.playersnake.body:
             exit(1)
+        if head in self.ai_snake.body:
+            exit(1)
         self.playersnake.body.appendleft(head)
 
     def update_world(self, steps):
         #move snakes <steps> times
         for _ in range(steps):
             self.playersnake.move()
-            # for snake in self.AIsnakes: 
-            #   snake.move()
+            self.ai_snake.decide_new_direction()
+            self.ai_snake.move()
             self.collision_check()
-            
+
             if self.food in self.playersnake.body:
                 self.playersnake.eat()
+                self.food = None
+            if self.food in self.ai_snake.body:
+                self.ai_snake.eat()
                 self.food = None
         # create new food if it got eaten
         if not self.food:
@@ -179,7 +254,7 @@ class SnakeOTron:
         random.seed()
 
         self.gamestate = GameState()
-    
+
     def turnto(self, direction):
         self.gamestate.set_player_direction(direction)
 
@@ -210,10 +285,8 @@ class SnakeOTron:
         self.draw.clear(self.bgcolor)
         self.draw_walls()
         self.draw_snake(self.gamestate.playersnake)
+        self.draw_snake(self.gamestate.ai_snake)
         self.draw_food()
-        #for snake in aisnakes
-        #   draw_snake(snake)
-        #draw_food
 
     def on_exit(self):
         self.state = State.EXITING
@@ -240,7 +313,7 @@ class SnakeOTron:
             # draw the updated world
             self.redraw()
 
-            # if the whole loop took less time than one step supposed to 
+            # if the whole loop took less time than one step supposed to
             # then sleep until the next step
             remaining_time = self.gamestate.TICKLENGTH - (time.clock() - loop_started)
             if remaining_time > 0:
