@@ -54,7 +54,7 @@ class Snake:
 
     def __init__(self, start_pos=(1,1), color=(0,0,200)):
         self.color = color
-        self.direction = Direction.RIGHT
+        self.direction = Direction.UP
         self.length = 8 # default snake length
         self.body = deque([start_pos])
 
@@ -150,47 +150,46 @@ class AISnake(Snake):
 
 
 class GameState:
-    def __init__(self):
+    def __init__(self, canvassize):
+
+        self.TICKLENGTH = 0.3 # length of one step in second
+        self.BLOCKSIZE = 8 # size of one block on the map in pixels
+
+        canvasw, canvash = canvassize
+        self.mapwidth = canvasw // self.BLOCKSIZE - 1
+        self.mapheight = canvash // self.BLOCKSIZE - 1
 
         self.reset()
 
     def reset(self):
         """ Set the game's state to default values """
 
-        self.TICKLENGTH = 0.3 # length of one step in second
-        self.BLOCKSIZE = 8 # size of one block on the map in pixels
+        thirdwidth = self.mapwidth // 3
+        halfheight = self.mapheight // 2
 
-        self.playersnake = Snake(start_pos = (10, 10)
+        self.playersnake = Snake(start_pos = (thirdwidth, halfheight)
                                 ,color = (0, 0, 200)
                                 )
-        self.ai_snake = AISnake(start_pos = (15, 10)
+        self.ai_snake = AISnake(start_pos = (thirdwidth*2, halfheight)
                                ,color = (255, 169, 43)
                                ,gamestate = self
                                )
         self.food = None
 
-        # Nokia C5 display size: 240x320
-        # available "large" canvas size: 240x293
-        self.set_wall(240,293) # FIXME hardwired resolution data
+        self.set_wall()
         self.wallcolor = (0, 0, 0)
 
         self.foodcolor = (59, 255, 0)
         self.place_new_food()
 
-    def set_wall(self, width, height):
+    def set_wall(self):
         self.wall = []
-
-        mapwidth = width // self.BLOCKSIZE
-        mapheight = height // self.BLOCKSIZE
-        for x in range(0, mapwidth):
+        for x in range(0, self.mapwidth):
             self.wall.append((x, 0))
-            self.wall.append((x, mapheight - 1))
-        for y in range(0, mapheight):
+            self.wall.append((x, self.mapheight))
+        for y in range(0, self.mapheight):
             self.wall.append((0, y))
-            self.wall.append((mapwidth - 1, y))
-
-        self.mapwidth = mapwidth - 1
-        self.mapheight = mapheight - 1
+            self.wall.append((self.mapwidth, y))
 
     def set_player_direction(self, direction):
         if Direction.opposite(direction) == self.playersnake.direction:
@@ -244,7 +243,7 @@ class GameState:
 
 class SnakeOTron:
     def __init__(self):
-        appuifw.app.screen = "large"
+        appuifw.app.screen = "full"
         appuifw.app.title = u"SNAKE-O-TRON"
 
         appuifw.app.exit_key_handler = self.on_exit
@@ -263,7 +262,7 @@ class SnakeOTron:
 
         random.seed()
 
-        self.gamestate = GameState()
+        self.gamestate = GameState(self.canvas.size)
 
     def turnto(self, direction):
         self.gamestate.set_player_direction(direction)
