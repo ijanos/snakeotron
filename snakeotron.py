@@ -131,7 +131,7 @@ class GameState:
             x = random.randint(1, self.mapwidth -1)
             y = random.randint(1, self.mapheight -1)
 
-        self.food = (x,y)
+        self.food = (x, y)
 
     def collision_check(self):
         head = self.playersnake.body.popleft()
@@ -152,6 +152,7 @@ class GameState:
             if self.food in self.playersnake.body:
                 self.playersnake.eat()
                 self.food = None
+        # create new food if it got eaten
         if not self.food:
             self.place_new_food()
 
