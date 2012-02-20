@@ -19,6 +19,7 @@ class State:
     def __init__(self):
         raise Exception("Please don't instantiate me")
 
+
 class Direction:
     """ Enum-like behavior for the snake's current direction """
     UP    = object()
@@ -51,7 +52,7 @@ class Snake:
     that allows efficient pop/push on both ends of the list.
     """
 
-    def __init__(self, start_pos = (1,1), color = (0,0,200)):
+    def __init__(self, start_pos=(1,1), color=(0,0,200)):
         self.color = color
         self.direction = Direction.RIGHT
         self.length = 8 # default snake length
@@ -75,7 +76,16 @@ class Snake:
         if len(self.body) > self.length:
             self.body.pop()
 
+
 class AISnake(Snake):
+    """
+    Computer controlled snake
+
+    This is a very dumb AI, it is aware of it's own body, walls and the other
+    snake and it will only hit them if no other choice left but there is no
+    planning or pathing, it will always try to move one pixel close to the
+    food so it will trap itself eventually.
+    """
 
     def __init__(self, start_pos, color, gamestate):
         Snake.__init__(self, start_pos, color)
@@ -89,8 +99,6 @@ class AISnake(Snake):
         if (x,y) in self.gamestate.playersnake.body:
             return True
         return False
-        #while D.opposite(newdir) == self.direction:
-        #    newdir = random.choice([D.UP, D.DOWN, D.LEFT, D.RIGHT])
 
     def preferred_directions(self):
         preferred = []
@@ -105,7 +113,6 @@ class AISnake(Snake):
         if heady < foody:
             preferred.append(Direction.DOWN)
         return preferred
-
 
     def will_not_die(self):
         D = Direction
@@ -132,7 +139,10 @@ class AISnake(Snake):
         # get preferred moves
         pref_moves = self.preferred_directions()
 
+        # The intersection of the two lists are the optimal moves,
+        # the ones that get the snake closer to the food
         optimal_moves = list(set(legal_moves).intersection(pref_moves))
+
         if optimal_moves:
             self.direction = random.choice(optimal_moves)
         else:
@@ -174,7 +184,7 @@ class GameState:
         mapheight = height // self.BLOCKSIZE
         for x in range(0, mapwidth):
             self.wall.append((x, 0))
-            self.wall.append((x, mapheight -1))
+            self.wall.append((x, mapheight - 1))
         for y in range(0, mapheight):
             self.wall.append((0, y))
             self.wall.append((mapwidth - 1, y))
@@ -196,10 +206,10 @@ class GameState:
             return False
 
         x = random.randint(1, self.mapwidth - 1)
-        y = random.randint(1, self.mapheight -1)
+        y = random.randint(1, self.mapheight - 1)
         while occupied(x,y):
-            x = random.randint(1, self.mapwidth -1)
-            y = random.randint(1, self.mapheight -1)
+            x = random.randint(1, self.mapwidth - 1)
+            y = random.randint(1, self.mapheight - 1)
 
         self.food = (x, y)
 
@@ -234,14 +244,14 @@ class GameState:
 
 class SnakeOTron:
     def __init__(self):
-        appuifw.app.screen="large"
+        appuifw.app.screen = "large"
         appuifw.app.title = u"SNAKE-O-TRON"
 
-        appuifw.app.exit_key_handler=self.on_exit
+        appuifw.app.exit_key_handler = self.on_exit
 
         self.bgcolor = (154, 154, 154)
-        self.canvas=appuifw.Canvas(redraw_callback=self.redraw)
-        self.draw=graphics.Draw(self.canvas)
+        self.canvas = appuifw.Canvas(redraw_callback=self.redraw)
+        self.draw = graphics.Draw(self.canvas)
 
         self.canvas.bind(EKeyUpArrow,    lambda:self.turnto(Direction.UP))
         self.canvas.bind(EKeyDownArrow,  lambda:self.turnto(Direction.DOWN))
@@ -297,9 +307,9 @@ class SnakeOTron:
         self.state = State.EXITING
 
     def close_canvas(self):
-        appuifw.app.body=self.old_body
-        self.canvas=None
-        appuifw.app.exit_key_handler=None
+        appuifw.app.body = self.old_body
+        self.canvas = None
+        appuifw.app.exit_key_handler = None
 
     def mainloop(self):
         """ The infinite main loop of the game """
@@ -308,7 +318,8 @@ class SnakeOTron:
         while self.state == State.RUNNING:
             loop_started = time.clock() # get the current time and...
             # ...decide how many steps happened since the last update
-            steps, _ = divmod(loop_started - lastupdate, self.gamestate.TICKLENGTH)
+            steps, _ = divmod(loop_started - lastupdate,
+                              self.gamestate.TICKLENGTH)
 
             # update the world according to the steps
             if steps > 0:
@@ -328,6 +339,7 @@ class SnakeOTron:
     def startgame(self):
         self.state = State.RUNNING
         self.mainloop()
+
 
 def start(x, y, score, energy):
     """ entry point for the HomeWoRPG framework """
