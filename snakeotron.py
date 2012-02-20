@@ -29,6 +29,17 @@ class Direction:
     def __init__(self):
         raise Exception("Please don't instantiate me")
 
+    @staticmethod
+    def opposite(direction):
+        opposites = ([Direction.UP, Direction.DOWN]
+                    ,[Direction.LEFT, Direction.RIGHT]
+                    )
+        for opp in opposites:
+            if direction in opp:
+                opp.remove(direction)
+                return opp[0]
+
+
 class Snake:
     """
     A Snake in the game
@@ -104,6 +115,8 @@ class GameState:
         self.mapheight = mapheight - 1
 
     def set_player_direction(self, direction):
+        if Direction.opposite(direction) == self.playersnake.direction:
+            return
         self.playersnake.direction = direction
 
     def place_new_food(self):
