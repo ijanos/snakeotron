@@ -125,8 +125,8 @@ class GameState:
                 return True
             # for snake in aisnakes
             return False
-        x = random.randint(1, self.mapwidth)
-        y = random.randint(1, self.mapheight)
+        x = random.randint(1, self.mapwidth - 1)
+        y = random.randint(1, self.mapheight -1)
         while occupied(x,y):
             x = random.randint(1, self.mapwidth -1)
             y = random.randint(1, self.mapheight -1)
