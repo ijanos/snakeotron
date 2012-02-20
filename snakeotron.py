@@ -147,7 +147,7 @@ class GameState:
     def reset(self):
         """ Set the game's state to default values """
 
-        self.TICKLENGTH = 0.4 # length of one step in second
+        self.TICKLENGTH = 0.3 # length of one step in second
         self.BLOCKSIZE = 8 # size of one block on the map in pixels
 
         self.playersnake = Snake(start_pos = (10, 10)
@@ -162,7 +162,7 @@ class GameState:
         # Nokia C5 display size: 240x320
         # available "large" canvas size: 240x293
         self.set_wall(240,293) # FIXME hardwired resolution data
-        self.wallcolor = (116, 0, 0)
+        self.wallcolor = (0, 0, 0)
 
         self.foodcolor = (59, 255, 0)
         self.place_new_food()
