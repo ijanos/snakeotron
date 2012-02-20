@@ -260,13 +260,13 @@ class SnakeOTron:
 
 
     def draw_block(self, x, y, color):
-        BLOCKSIZE = 8
-        rect_x1 = BLOCKSIZE * x
-        rect_x2 = rect_x1 + BLOCKSIZE
-        rect_y1 = BLOCKSIZE * y
-        rect_y2 = rect_y1 + BLOCKSIZE
+        BSIZE = self.gamestate.BLOCKSIZE
+        rect_x1 = BSIZE * x
+        rect_x2 = rect_x1 + BSIZE
+        rect_y1 = BSIZE * y
+        rect_y2 = rect_y1 + BSIZE
         self.draw.rectangle((rect_x1, rect_y1,
-                             rect_x2,rect_y2),
+                             rect_x2, rect_y2),
                              fill=color)
 
     def draw_snake(self, snake):
