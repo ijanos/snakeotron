@@ -184,10 +184,10 @@ class GameState:
 
     def set_wall(self):
         self.wall = []
-        for x in range(0, self.mapwidth):
+        for x in range(0, self.mapwidth + 1):
             self.wall.append((x, 0))
             self.wall.append((x, self.mapheight))
-        for y in range(0, self.mapheight):
+        for y in range(0, self.mapheight + 1):
             self.wall.append((0, y))
             self.wall.append((self.mapwidth, y))
 
