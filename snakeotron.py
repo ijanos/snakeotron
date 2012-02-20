@@ -259,19 +259,24 @@ class SnakeOTron:
         self.gamestate.set_player_direction(direction)
 
 
-    def draw_block(self, x, y, color):
+    def draw_block(self, x, y, color, outline = None):
         BSIZE = self.gamestate.BLOCKSIZE
         rect_x1 = BSIZE * x
         rect_x2 = rect_x1 + BSIZE
         rect_y1 = BSIZE * y
         rect_y2 = rect_y1 + BSIZE
         self.draw.rectangle((rect_x1, rect_y1,
-                             rect_x2, rect_y2),
-                             fill=color)
+                             rect_x2, rect_y2)
+                            ,fill=color
+                            ,outline=outline)
 
     def draw_snake(self, snake):
         for (x,y) in snake.body:
             self.draw_block(x,y,snake.color)
+
+        # Draw the head of the snake
+        (x, y) = snake.body[0]
+        self.draw_block(x,y, snake.color, (0,0,0))
 
     def draw_walls(self):
         for (x,y) in self.gamestate.wall:
