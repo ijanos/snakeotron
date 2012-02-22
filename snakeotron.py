@@ -7,8 +7,8 @@ from collections import deque
 import appuifw
 import e32
 import graphics
-from key_codes import EKeyRightArrow, EKeyUpArrow, EKeyLeftArrow, EKeyDownArrow
-
+from key_codes import EKeyRightArrow, EKeyUpArrow,\
+                      EKeyLeftArrow, EKeyDownArrow, EKeyHash
 
 class State:
     """ Enum-like behavior for the game's current state """
@@ -256,6 +256,7 @@ class SnakeOTron:
         self.canvas.bind(EKeyDownArrow,  lambda:self.turnto(Direction.DOWN))
         self.canvas.bind(EKeyLeftArrow,  lambda:self.turnto(Direction.LEFT))
         self.canvas.bind(EKeyRightArrow, lambda:self.turnto(Direction.RIGHT))
+        self.canvas.bind(EKeyHash,       lambda:self.make_screenshot())
 
         self.old_body = appuifw.app.body
         appuifw.app.body = self.canvas
@@ -267,6 +268,10 @@ class SnakeOTron:
     def turnto(self, direction):
         self.gamestate.set_player_direction(direction)
 
+    def make_screenshot(self):
+        filename=u'e:\\screenshot.png'
+        img = graphics.screenshot()
+        img.save(filename)
 
     def draw_block(self, x, y, color, outline = None):
         BSIZE = self.gamestate.BLOCKSIZE
