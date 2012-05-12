@@ -331,9 +331,7 @@ class SnakeOTron:
             energy = 0
         else:
             energy = -1
-        print "snake=", self.gamestate.playersnake.length
         score = int(floor((self.gamestate.playersnake.length - 8) / 3.0))
-        print "s=", score, "e=", energy
         return (score, energy)
 
     def mainloop(self):
