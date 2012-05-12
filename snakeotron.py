@@ -3,23 +3,13 @@
 import time
 import random
 from collections import deque
+from math import floor
 
 import appuifw
 import e32
 import graphics
 from key_codes import EKeyRightArrow, EKeyUpArrow,\
                       EKeyLeftArrow, EKeyDownArrow, EKeyHash
-
-
-class State:
-    """ Enum-like behavior for the game's current state """
-    RUNNING = object()
-    PAUSED  = object()
-    EXITING = object()
-
-    def __init__(self):
-        raise Exception("Please don't instantiate me")
-
 
 class Direction:
     """ Enum-like behavior for the snake's current direction """
@@ -134,8 +124,7 @@ class AISnake(Snake):
         legal_moves = self.will_not_die()
 
         if not legal_moves:
-            print "shit happaned"
-            exit(55)
+            return False
 
         # get preferred moves
         pref_moves = self.preferred_directions()
@@ -149,6 +138,8 @@ class AISnake(Snake):
         else:
             self.direction = random.choice(legal_moves)
 
+        return True
+
 
 class GameState:
     def __init__(self, canvassize):
@@ -159,6 +150,9 @@ class GameState:
         canvasw, canvash = canvassize
         self.mapwidth = canvasw // self.BLOCKSIZE - 1
         self.mapheight = canvash // self.BLOCKSIZE - 1
+
+        self.info = ""
+        self.running = True
 
         self.reset()
 
@@ -176,6 +170,8 @@ class GameState:
                                 gamestate=self
                                )
         self.food = None
+
+        self.running = True
 
         self.set_wall()
         self.wallcolor = (0, 0, 0)
@@ -216,18 +212,24 @@ class GameState:
     def collision_check(self):
         head = self.playersnake.body.popleft()
         if head in self.wall:
-            exit(1)
+            self.info = "death by wall"
+            self.running = False
         if head in self.playersnake.body:
-            exit(1)
+            self.info = "death by self"
+            self.running = False
         if head in self.ai_snake.body:
-            exit(1)
+            self.info = "death by ai"
+            self.running = False
         self.playersnake.body.appendleft(head)
 
     def update_world(self, steps):
         #move snakes <steps> times
         for _ in range(steps):
             self.playersnake.move()
-            self.ai_snake.decide_new_direction()
+            if not self.ai_snake.decide_new_direction():
+                self.running = False
+                self.info = "ai lost"
+                return
             self.ai_snake.move()
             self.collision_check()
 
@@ -237,6 +239,10 @@ class GameState:
             if self.food in self.ai_snake.body:
                 self.ai_snake.eat()
                 self.food = None
+            if self.playersnake.length > 38:
+                self.info = "moneywin"
+                self.running = False
+                return
         # create new food if it got eaten
         if not self.food:
             self.place_new_food()
@@ -249,8 +255,12 @@ class SnakeOTron:
 
         appuifw.app.exit_key_handler = self.on_exit
 
+
         self.bgcolor = (154, 154, 154)
         self.canvas = appuifw.Canvas(redraw_callback=self.redraw)
+
+        self.gamestate = GameState(self.canvas.size)
+
         self.draw = graphics.Draw(self.canvas)
 
         self.canvas.bind(EKeyUpArrow,    lambda: self.turnto(Direction.UP))
@@ -263,8 +273,6 @@ class SnakeOTron:
         appuifw.app.body = self.canvas
 
         random.seed()
-
-        self.gamestate = GameState(self.canvas.size)
 
     def turnto(self, direction):
         self.gamestate.set_player_direction(direction)
@@ -309,7 +317,7 @@ class SnakeOTron:
         self.draw_food()
 
     def on_exit(self):
-        self.state = State.EXITING
+        self.gamestate.running = False
 
     def close_canvas(self):
         appuifw.app.body = self.old_body
@@ -317,13 +325,22 @@ class SnakeOTron:
         appuifw.app.exit_key_handler = None
 
     def calc_score(self):
-        pass
+        if self.gamestate.info == "ai lost":
+            energy = 1
+        if self.gamestate.info == "moneywin":
+            energy = 0
+        else:
+            energy = -1
+        print "snake=", self.gamestate.playersnake.length
+        score = int(floor((self.gamestate.playersnake.length - 8) / 3.0))
+        print "s=", score, "e=", energy
+        return (score, energy)
 
     def mainloop(self):
         """ The infinite main loop of the game """
         lastupdate = time.clock()
 
-        while self.state == State.RUNNING:
+        while self.gamestate.running:
             loop_started = time.clock()  # get the current time and...
             # ...decide how many steps happened since the last update
             steps, _ = divmod(loop_started - lastupdate,
@@ -333,6 +350,9 @@ class SnakeOTron:
             if steps > 0:
                 self.gamestate.update_world(steps)
                 lastupdate = time.clock()
+
+            if not self.gamestate.running:
+                break
 
             # draw the updated world
             self.redraw()
@@ -345,16 +365,19 @@ class SnakeOTron:
         self.close_canvas()
 
     def startgame(self):
-        self.state = State.RUNNING
         self.mainloop()
+        appuifw.note(unicode(self.gamestate.info), 'info')
 
 
 def start(x, y, score, energy):
     """ entry point for the HomeWoRPG framework """
     g = SnakeOTron()
     g.startgame()
-    return (score, energy)
+    (s, e) = g.calc_score()
+    return (score + s, energy + e)
 
 
-g = SnakeOTron()
-g.startgame()
+if __name__ == "__main__":
+    g = SnakeOTron()
+    g.startgame()
+    (s, e) = g.calc_score()
