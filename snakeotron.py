@@ -10,6 +10,7 @@ import graphics
 from key_codes import EKeyRightArrow, EKeyUpArrow,\
                       EKeyLeftArrow, EKeyDownArrow, EKeyHash
 
+
 class State:
     """ Enum-like behavior for the game's current state """
     RUNNING = object()
@@ -32,8 +33,8 @@ class Direction:
 
     @staticmethod
     def opposite(direction):
-        opposites = ([Direction.UP, Direction.DOWN]
-                    ,[Direction.LEFT, Direction.RIGHT]
+        opposites = ([Direction.UP, Direction.DOWN],
+                     [Direction.LEFT, Direction.RIGHT]
                     )
         for opp in opposites:
             if direction in opp:
@@ -52,13 +53,13 @@ class Snake:
     that allows efficient pop/push on both ends of the list.
     """
 
-    def __init__(self, start_pos=(1,1), color=(0,0,200)):
+    def __init__(self, start_pos=(1, 1), color=(0, 0, 200)):
         self.color = color
         self.direction = Direction.UP
-        self.length = 8 # default snake length
+        self.length = 8  # default snake length
         self.body = deque([start_pos])
 
-    def eat(self, blocks = 3):
+    def eat(self, blocks=3):
         self.length += blocks
 
     def move(self):
@@ -92,11 +93,11 @@ class AISnake(Snake):
         self.gamestate = gamestate
 
     def occupied(self, x, y):
-        if (x,y) in self.gamestate.wall:
+        if (x, y) in self.gamestate.wall:
             return True
-        if (x,y) in self.body:
+        if (x, y) in self.body:
             return True
-        if (x,y) in self.gamestate.playersnake.body:
+        if (x, y) in self.gamestate.playersnake.body:
             return True
         return False
 
@@ -152,8 +153,8 @@ class AISnake(Snake):
 class GameState:
     def __init__(self, canvassize):
 
-        self.TICKLENGTH = 0.3 # length of one step in second
-        self.BLOCKSIZE = 8 # size of one block on the map in pixels
+        self.TICKLENGTH = 0.3  # length of one step in second
+        self.BLOCKSIZE = 8  # size of one block on the map in pixels
 
         canvasw, canvash = canvassize
         self.mapwidth = canvasw // self.BLOCKSIZE - 1
@@ -167,12 +168,12 @@ class GameState:
         thirdwidth = self.mapwidth // 3
         halfheight = self.mapheight // 2
 
-        self.playersnake = Snake(start_pos = (thirdwidth, halfheight)
-                                ,color = (0, 0, 200)
+        self.playersnake = Snake(start_pos=(thirdwidth, halfheight),
+                                 color=(0, 0, 200)
                                 )
-        self.ai_snake = AISnake(start_pos = (thirdwidth*2, halfheight)
-                               ,color = (255, 169, 43)
-                               ,gamestate = self
+        self.ai_snake = AISnake(start_pos=(thirdwidth * 2, halfheight),
+                                color=(255, 169, 43),
+                                gamestate=self
                                )
         self.food = None
 
@@ -197,7 +198,7 @@ class GameState:
         self.playersnake.direction = direction
 
     def place_new_food(self):
-        def occupied(x,y):
+        def occupied(x, y):
             if (x, y) in self.playersnake.body:
                 return True
             if (x, y) in self.ai_snake.body:
@@ -206,7 +207,7 @@ class GameState:
 
         x = random.randint(1, self.mapwidth - 1)
         y = random.randint(1, self.mapheight - 1)
-        while occupied(x,y):
+        while occupied(x, y):
             x = random.randint(1, self.mapwidth - 1)
             y = random.randint(1, self.mapheight - 1)
 
@@ -252,11 +253,11 @@ class SnakeOTron:
         self.canvas = appuifw.Canvas(redraw_callback=self.redraw)
         self.draw = graphics.Draw(self.canvas)
 
-        self.canvas.bind(EKeyUpArrow,    lambda:self.turnto(Direction.UP))
-        self.canvas.bind(EKeyDownArrow,  lambda:self.turnto(Direction.DOWN))
-        self.canvas.bind(EKeyLeftArrow,  lambda:self.turnto(Direction.LEFT))
-        self.canvas.bind(EKeyRightArrow, lambda:self.turnto(Direction.RIGHT))
-        self.canvas.bind(EKeyHash,       lambda:self.make_screenshot())
+        self.canvas.bind(EKeyUpArrow,    lambda: self.turnto(Direction.UP))
+        self.canvas.bind(EKeyDownArrow,  lambda: self.turnto(Direction.DOWN))
+        self.canvas.bind(EKeyLeftArrow,  lambda: self.turnto(Direction.LEFT))
+        self.canvas.bind(EKeyRightArrow, lambda: self.turnto(Direction.RIGHT))
+        self.canvas.bind(EKeyHash,       lambda: self.make_screenshot())
 
         self.old_body = appuifw.app.body
         appuifw.app.body = self.canvas
@@ -269,38 +270,38 @@ class SnakeOTron:
         self.gamestate.set_player_direction(direction)
 
     def make_screenshot(self):
-        filename=u'e:\\screenshot.png'
+        filename = u'e:\\screenshot.png'
         img = graphics.screenshot()
         img.save(filename)
 
-    def draw_block(self, x, y, color, outline = None):
+    def draw_block(self, x, y, color, outline=None):
         BSIZE = self.gamestate.BLOCKSIZE
         rect_x1 = BSIZE * x
         rect_x2 = rect_x1 + BSIZE
         rect_y1 = BSIZE * y
         rect_y2 = rect_y1 + BSIZE
         self.draw.rectangle((rect_x1, rect_y1,
-                             rect_x2, rect_y2)
-                            ,fill=color
-                            ,outline=outline)
+                             rect_x2, rect_y2),
+                             fill=color,
+                             outline=outline)
 
     def draw_snake(self, snake):
-        for (x,y) in snake.body:
-            self.draw_block(x,y,snake.color)
+        for (x, y) in snake.body:
+            self.draw_block(x, y, snake.color)
 
         # Draw the head of the snake
         (x, y) = snake.body[0]
-        self.draw_block(x,y, snake.color, (0,0,0))
+        self.draw_block(x, y, snake.color, (0, 0, 0))
 
     def draw_walls(self):
-        for (x,y) in self.gamestate.wall:
-            self.draw_block(x,y,self.gamestate.wallcolor)
+        for (x, y) in self.gamestate.wall:
+            self.draw_block(x, y, self.gamestate.wallcolor)
 
     def draw_food(self):
         x, y = self.gamestate.food
-        self.draw_block(x ,y, self.gamestate.foodcolor)
+        self.draw_block(x, y, self.gamestate.foodcolor)
 
-    def redraw(self, rect = None):
+    def redraw(self, rect=None):
         self.draw.clear(self.bgcolor)
         self.draw_walls()
         self.draw_snake(self.gamestate.playersnake)
@@ -315,12 +316,15 @@ class SnakeOTron:
         self.canvas = None
         appuifw.app.exit_key_handler = None
 
+    def calc_score(self):
+        pass
+
     def mainloop(self):
         """ The infinite main loop of the game """
         lastupdate = time.clock()
 
         while self.state == State.RUNNING:
-            loop_started = time.clock() # get the current time and...
+            loop_started = time.clock()  # get the current time and...
             # ...decide how many steps happened since the last update
             steps, _ = divmod(loop_started - lastupdate,
                               self.gamestate.TICKLENGTH)
@@ -347,9 +351,10 @@ class SnakeOTron:
 
 def start(x, y, score, energy):
     """ entry point for the HomeWoRPG framework """
+    g = SnakeOTron()
+    g.startgame()
     return (score, energy)
 
 
 g = SnakeOTron()
 g.startgame()
-print " ---- exiting ---- "
